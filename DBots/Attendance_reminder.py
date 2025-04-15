@@ -1,13 +1,16 @@
 import re
 import logging
+import os
+from dotenv import load_dotenv
 
 from flask import Flask
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, ContextTypes, filters
 
 # === CONFIG ===
-BOT_TOKEN = "7856528774:AAG5gRI-6SuC7m5rrixVefgJkLX6WDmSCPA"
-GROUP_CHAT_ID = -1002500830311  # Replace with actual group chat ID
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+GROUP_CHAT_ID = int(os.getenv("GROUP_CHAT_ID"))
 
 # === LOGGING ===
 logging.basicConfig(level=logging.INFO)
@@ -38,9 +41,9 @@ application = None
 def index():
     return 'Bot is alive!'
 
-@app.before_first_request
+import threading
+
 def start_bot():
-    import threading
     def run():
         global application
         application = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -49,6 +52,9 @@ def start_bot():
         application.run_polling()
 
     threading.Thread(target=run).start()
+
+# Immediately start the bot
+start_bot()
 
 # === MAIN SETUP ===
 def main():
