@@ -28,6 +28,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Bot is running!")
 
+# === FLASK SERVER + BOT ===
+app = Flask(__name__)
+application = None
+
+@app.route('/')
+def index():
+    return 'Bot is alive!'
+
+@app.before_first_request
+def start_bot():
+    import threading
+    def run():
+        global application
+        application = ApplicationBuilder().token(BOT_TOKEN).build()
+        application.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS, handle_message))
+        application.add_handler(CommandHandler("start", start))
+        application.run_polling()
+
+    threading.Thread(target=run).start()
+
 # === MAIN SETUP ===
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -38,4 +58,4 @@ def main():
     app.run_polling()
 
 if __name__ == '__main__':
-    main()
+    app.run(host='0.0.0.0', port=10000)
